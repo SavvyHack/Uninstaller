@@ -53,36 +53,7 @@ public static class SoftwareRelocator
             Uninstall.UninstallRunner.StopRunningProcesses(app, progress);
             record.StoppedServices = StopServicesIn(source, progress);
 
-            progress?.Report($"Copying {Format.Bytes(size)} to {target}…");
-            FileOps.CopyDirectory(source, target, new Progress<string>(f => progress?.Report($"Copying {Path.GetFileName(f)}")), ct);
-
-            progress?.Report("Verifying the copy…");
-            var copied = FileOps.DirectorySize(target, ct);
-            if (copied < size) throw new IOException($"Copy incomplete ({Format.Bytes(copied)} of {Format.Bytes(size)}). The original was left untouched.");
-
-            progress?.Report("Linking the old location to the new one…");
-            // Rename first: it is atomic and fails cleanly if anything is still locked.
-            var parked = source + ".reclaim-moving";
-            try
-            {
-                Directory.Move(source, parked);
-            }
-            catch (Exception ex)
-            {
-                FileOps.DeletePermanently(target);
-                throw new IOException($"Some files are still in use, so nothing was moved ({ex.Message}).");
-            }
-            try
-            {
-                CreateJunction(source, target);
-            }
-            catch
-            {
-                Directory.Move(parked, source);
-                FileOps.DeletePermanently(target);
-                throw;
-            }
-            FileOps.DeletePermanently(parked);
+            MoveWithJunction(source, target, size, progress, ct);
 
             Save(record);
             foreach (var s in record.StoppedServices) ProcessRunner.Run("sc.exe", $"start \"{s}\"", TimeSpan.FromSeconds(30));
@@ -106,14 +77,66 @@ public static class SoftwareRelocator
                 }
                 catch { }
             }
-            progress?.Report("Removing the link…");
-            if (Directory.Exists(record.OriginalPath)) Directory.Delete(record.OriginalPath); // junction only
             progress?.Report("Moving files back…");
-            FileOps.CopyDirectory(record.NewPath, record.OriginalPath, null, ct);
-            Directory.Delete(record.NewPath, recursive: true);
+            MoveBack(record.OriginalPath, record.NewPath, ct);
             File.Delete(Path.Combine(AppPaths.Relocations, record.Id + ".json"));
             foreach (var s in stopped) ProcessRunner.Run("sc.exe", $"start \"{s}\"", TimeSpan.FromSeconds(30));
         }, ct);
+    }
+
+    /// <summary>
+    /// Copies <paramref name="source"/> to <paramref name="target"/>, verifies the copy, then replaces the source with a
+    /// directory junction pointing at the target. On any failure the original is left (or put back) in place.
+    /// </summary>
+    internal static void MoveWithJunction(string source, string target, long expectedSize, IProgress<string>? progress, CancellationToken ct)
+    {
+        progress?.Report($"Copying {Format.Bytes(expectedSize)} to {target}…");
+        FileOps.CopyDirectory(source, target, new Progress<string>(f => progress?.Report($"Copying {Path.GetFileName(f)}")), ct);
+
+        progress?.Report("Verifying the copy…");
+        var copied = FileOps.DirectorySize(target, ct);
+        if (copied < expectedSize)
+        {
+            FileOps.DeletePermanently(target);
+            throw new IOException($"Copy incomplete ({Format.Bytes(copied)} of {Format.Bytes(expectedSize)}). The original was left untouched.");
+        }
+
+        progress?.Report("Linking the old location to the new one…");
+        // Rename first: it is atomic and fails cleanly if anything is still locked.
+        var parked = source + ".reclaim-moving";
+        try
+        {
+            Directory.Move(source, parked);
+        }
+        catch (Exception ex)
+        {
+            FileOps.DeletePermanently(target);
+            throw new IOException($"Some files are still in use, so nothing was moved ({ex.Message}).");
+        }
+        try
+        {
+            CreateJunction(source, target);
+        }
+        catch
+        {
+            Directory.Move(parked, source);
+            FileOps.DeletePermanently(target);
+            throw;
+        }
+        FileOps.DeletePermanently(parked);
+    }
+
+    /// <summary>Reverses <see cref="MoveWithJunction"/>: removes the junction and moves the files back.</summary>
+    internal static void MoveBack(string originalPath, string newPath, CancellationToken ct)
+    {
+        if (Directory.Exists(originalPath))
+        {
+            if (!new DirectoryInfo(originalPath).Attributes.HasFlag(FileAttributes.ReparsePoint))
+                throw new IOException($"{originalPath} is a real folder, not Reclaim's link. Nothing was changed.");
+            Directory.Delete(originalPath); // junction only
+        }
+        FileOps.CopyDirectory(newPath, originalPath, null, ct);
+        Directory.Delete(newPath, recursive: true);
     }
 
     public static List<RelocationRecord> List()

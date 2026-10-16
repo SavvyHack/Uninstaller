@@ -171,10 +171,33 @@
     </Style>
 
     <!--  Row in a list that should look like a hoverable card row  -->
-    <Style x:Key="RowItem" TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
-        <Setter Property="Padding" Value="0" />
+    <Style x:Key="RowItem" TargetType="ListViewItem">
         <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListViewItem">
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="6">
+                        <Grid>
+                            <Border x:Name="Accent" Width="3" Height="18" Margin="0,0,0,0" HorizontalAlignment="Left" CornerRadius="1.5"
+                                    Background="{DynamicResource AccentFillColorDefaultBrush}" Visibility="Collapsed" />
+                            <ContentPresenter />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                            <Setter TargetName="Accent" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!--  Icon placeholder tile for apps without an icon  -->

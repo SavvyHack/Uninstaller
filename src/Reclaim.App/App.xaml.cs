@@ -79,6 +79,11 @@ public partial class App : Application
                 case "--uninstall-target" when i + 1 < args.Length:
                     window.OpenUninstallFor(args[++i]);
                     return;
+                case "--page" when i + 1 < args.Length:
+                    var page = Type.GetType($"Reclaim.App.Views.Pages.{args[++i]}Page");
+                    Log.Info($"Start page {args[i]} -> {page?.FullName ?? "not found"}");
+                    if (page is not null) ui.Navigate(page);
+                    break;
                 case "--resume-batch":
                     var pending = BatchUninstallQueue.LoadPending();
                     BatchUninstallQueue.ClearPending();
@@ -93,7 +98,7 @@ public partial class App : Application
 
     private void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        Log.Error("Unhandled UI exception", e.Exception);
+        Log.Error("Unhandled UI exception: " + e.Exception);
         e.Handled = true;
         try
         {

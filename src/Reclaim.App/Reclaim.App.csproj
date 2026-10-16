@@ -5,6 +5,8 @@
     <AssemblyName>Reclaim</AssemblyName>
     <RootNamespace>Reclaim.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- dotnet build -p:Preview=true : runs without elevation (read-only browsing, UI work) -->
+    <ApplicationManifest Condition="'$(Preview)' == 'true'">app.preview.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\reclaim.ico</ApplicationIcon>
     <NoWarn>$(NoWarn);MVVMTK0045;CA1416</NoWarn>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>

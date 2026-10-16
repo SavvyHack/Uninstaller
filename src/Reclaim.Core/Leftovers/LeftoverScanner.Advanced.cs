@@ -246,7 +246,12 @@ public sealed partial class LeftoverScanner
         {
             var leaf = relative[(relative.LastIndexOf('\\') + 1)..];
             var nameScore = ConfidenceScorer.ScoreName(leaf, _fp);
-            if (nameScore.Value >= 55 || hits.Count == valueNames.Length && key.SubKeyCount == 0)
+            // Windows' own bookkeeping (tile backups, shell history...) only ever loses individual values.
+            var windowsOwned = relative.StartsWith(@"Microsoft\", StringComparison.OrdinalIgnoreCase)
+                               || relative.StartsWith(@"WOW6432Node\Microsoft\", StringComparison.OrdinalIgnoreCase);
+            if (windowsOwned)
+                foreach (var h in hits) AddValue(fullPath, h, "Usage traces", 60, "Windows record that points into the program folder");
+            else if (nameScore.Value >= 55 || hits.Count == valueNames.Length && key.SubKeyCount == 0)
                 AddKey(fullPath, "Registry: references", Math.Max(80, nameScore.Value), "Key whose data points into the program folder");
             else
                 foreach (var h in hits) AddValue(fullPath, h, "Registry: references", 75, "Value points into the program folder");

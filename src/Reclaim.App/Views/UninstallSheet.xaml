@@ -266,7 +266,7 @@
             <TreeView x:Name="LeftoverTree" Grid.Row="1" Margin="20,0,20,0" Background="Transparent" BorderThickness="0" ItemsSource="{Binding Tree}"
                       VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                 <TreeView.ItemContainerStyle>
-                    <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Type TreeViewItem}}">
+                    <Style TargetType="TreeViewItem" BasedOn="{StaticResource DefaultTreeViewItemStyle}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     </Style>
                 </TreeView.ItemContainerStyle>

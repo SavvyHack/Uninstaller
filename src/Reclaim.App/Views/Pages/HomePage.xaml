@@ -52,7 +52,7 @@
                 </ui:CardAction>
                 <ui:CardAction Command="{Binding ShowAppsCommand}" CommandParameter="Leftovers" Style="{StaticResource StatCard}">
                     <StackPanel>
-                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource SystemFillColorCautionBrush}" Symbol="FolderSearch24" />
+                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource SystemFillColorCautionBrush}" Symbol="Warning24" />
                         <TextBlock Margin="0,14,0,0" Style="{StaticResource BigNumber}" Text="{Binding LeftoverCount}" />
                         <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="Leftovers &amp; broken entries" />
                         <TextBlock Margin="0,6,0,0" Style="{StaticResource Tertiary}" Text="From earlier uninstalls" />

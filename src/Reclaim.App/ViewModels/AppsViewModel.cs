@@ -117,7 +117,7 @@ public sealed partial class AppsViewModel : ObservableObject
         var m = vm.Model;
         var pass = Filter switch
         {
-            AppFilter.All => m.Source is not AppSource.WindowsUpdate,
+            AppFilter.All => m.Source is not AppSource.WindowsUpdate && !(m.Source == AppSource.Store && m.Has(AppFlags.NonRemovable)),
             AppFilter.Programs => m.Source is AppSource.Win32 or AppSource.Steam or AppSource.Scoop or AppSource.Chocolatey,
             AppFilter.WindowsApps => m.Source == AppSource.Store,
             AppFilter.Extensions => m.Source == AppSource.BrowserExtension,
