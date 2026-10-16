@@ -7,6 +7,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:Reclaim.App.ViewModels"
     Title="Apps"
+    ScrollViewer.CanContentScroll="False"
     d:DataContext="{d:DesignInstance Type=vm:AppsViewModel}"
     mc:Ignorable="d">
     <Page.InputBindings>
