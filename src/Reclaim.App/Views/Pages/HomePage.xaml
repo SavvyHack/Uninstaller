@@ -1,0 +1,140 @@
+<Page
+    x:Class="Reclaim.App.Views.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Reclaim.App.ViewModels"
+    Title="Home"
+    d:DataContext="{d:DesignInstance Type=vm:HomeViewModel}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <DataTemplate x:Key="MiniAppRow" DataType="{x:Type vm:AppItemViewModel}">
+            <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid Width="32" Height="32" Margin="0,0,12,0">
+                    <Border CornerRadius="8" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Visibility="{Binding Icon, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}">
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold" Text="{Binding Initial}" />
+                    </Border>
+                    <Image Source="{Binding Icon}" RenderOptions.BitmapScalingMode="HighQuality" />
+                </Grid>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Style="{StaticResource Secondary}" Text="{Binding Publisher}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Margin="12,0" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding SizeText}" />
+                <ui:Button Grid.Column="3" Appearance="Transparent" Command="{Binding DataContext.UninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}"
+                           Icon="{ui:SymbolIcon Delete24}" ToolTip="Uninstall" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,8,0,24">
+            <TextBlock Style="{StaticResource PageTitle}" Text="{Binding Greeting}" />
+            <TextBlock Style="{StaticResource PageSubtitle}" Text="Here's what's on your PC and what could be cleaned up." />
+
+            <!--  Stat cards  -->
+            <UniformGrid Margin="0,24,-12,0" Columns="4">
+                <ui:CardAction Command="{Binding ShowAppsCommand}" CommandParameter="All" Style="{StaticResource StatCard}">
+                    <StackPanel>
+                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Symbol="Apps24" />
+                        <TextBlock Margin="0,14,0,0" Style="{StaticResource BigNumber}" Text="{Binding AppCount}" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="Installed apps" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource Tertiary}" Text="{Binding AppSize, StringFormat='{}{0} on disk'}" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Command="{Binding ShowAppsCommand}" CommandParameter="Leftovers" Style="{StaticResource StatCard}">
+                    <StackPanel>
+                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource SystemFillColorCautionBrush}" Symbol="FolderSearch24" />
+                        <TextBlock Margin="0,14,0,0" Style="{StaticResource BigNumber}" Text="{Binding LeftoverCount}" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="Leftovers &amp; broken entries" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource Tertiary}" Text="From earlier uninstalls" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Command="{Binding CheckUpdatesCommand}" Style="{StaticResource StatCard}">
+                    <StackPanel>
+                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource SystemFillColorSuccessBrush}" Symbol="ArrowSync24" />
+                        <TextBlock Margin="0,14,0,0" Style="{StaticResource BigNumber}" FontSize="20" Text="{Binding UpdatesText}" TextWrapping="Wrap" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="App updates" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource Tertiary}" Text="Click to check with winget" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Command="{Binding GoCommand}" CommandParameter="Cleanup" Style="{StaticResource StatCard}">
+                    <StackPanel>
+                        <ui:SymbolIcon HorizontalAlignment="Left" FontSize="24" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Symbol="Broom24" />
+                        <TextBlock Margin="0,14,0,0" Style="{StaticResource BigNumber}" Text="{Binding JunkText}" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="Temporary files" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource Tertiary}" Text="{Binding StartupText, StringFormat='Startup: {0}'}" />
+                    </StackPanel>
+                </ui:CardAction>
+            </UniformGrid>
+
+            <ui:InfoBar Margin="0,4,0,0" IsClosable="True" IsOpen="True" Severity="Warning" Title="Possible bundleware found"
+                        Message="{Binding BundlewareCount, StringFormat='{}{0} program(s) look like unwanted extras that came bundled with other software.'}"
+                        Visibility="{Binding BundlewareCount, Converter={StaticResource HasValueToVis}}" />
+
+            <!--  Quick actions  -->
+            <TextBlock Style="{StaticResource SectionTitle}" Text="Quick actions" />
+            <UniformGrid Margin="0,0,-12,0" Columns="4">
+                <ui:CardAction Margin="0,0,12,12" Command="{Binding ShowAppsCommand}" CommandParameter="All" Icon="{ui:SymbolIcon DeleteLines20}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="Uninstall apps" />
+                        <TextBlock Style="{StaticResource Secondary}" Text="One or many at once" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Margin="0,0,12,12" Command="{Binding GoCommand}" CommandParameter="Hunter" Icon="{ui:SymbolIcon Target24}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="Hunter mode" />
+                        <TextBlock Style="{StaticResource Secondary}" Text="Point at any window or icon" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Margin="0,0,12,12" Command="{Binding GoCommand}" CommandParameter="Monitor" Icon="{ui:SymbolIcon Pulse24}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="Install &amp; trace" />
+                        <TextBlock Style="{StaticResource Secondary}" Text="Record a new install" />
+                    </StackPanel>
+                </ui:CardAction>
+                <ui:CardAction Margin="0,0,12,12" Command="{Binding GoCommand}" CommandParameter="Force" Icon="{ui:SymbolIcon DeleteDismiss24}">
+                    <StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="Force uninstall" />
+                        <TextBlock Style="{StaticResource Secondary}" Text="For broken programs" />
+                    </StackPanel>
+                </ui:CardAction>
+            </UniformGrid>
+
+            <!--  Lists  -->
+            <Grid Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Recently installed" />
+                            <ui:HyperlinkButton Padding="4,0" HorizontalAlignment="Right" Command="{Binding ShowAppsCommand}" CommandParameter="Recent" Content="See all" />
+                        </Grid>
+                        <ItemsControl ItemTemplate="{StaticResource MiniAppRow}" ItemsSource="{Binding Recent}" />
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource CardTitle}" Text="Taking the most space" />
+                            <ui:HyperlinkButton Padding="4,0" HorizontalAlignment="Right" Command="{Binding ShowAppsCommand}" CommandParameter="Large" Content="See all" />
+                        </Grid>
+                        <ItemsControl ItemTemplate="{StaticResource MiniAppRow}" ItemsSource="{Binding Largest}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

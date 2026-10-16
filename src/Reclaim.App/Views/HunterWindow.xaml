@@ -1,0 +1,48 @@
+<Window
+    x:Class="Reclaim.App.Views.HunterWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Reclaim Hunter"
+    Width="132"
+    Height="160"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ResizeMode="NoResize"
+    ShowInTaskbar="True"
+    Topmost="True"
+    WindowStyle="None">
+    <Border Margin="8" CornerRadius="16" Background="{DynamicResource SolidBackgroundFillColorBaseBrush}" BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="16" Opacity="0.35" ShadowDepth="2" />
+        </Border.Effect>
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem Click="OpenMain_Click" Header="Open Reclaim" />
+                <MenuItem x:Name="TopmostItem" Click="Topmost_Click" Header="Always on top" IsCheckable="True" IsChecked="True" />
+                <Separator />
+                <MenuItem Click="Exit_Click" Header="Exit Hunter" />
+            </ContextMenu>
+        </Border.ContextMenu>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="26" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border Background="Transparent" Cursor="SizeAll" MouseLeftButtonDown="Grip_MouseLeftButtonDown" ToolTip="Drag to move">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="• • •" />
+            </Border>
+            <Grid x:Name="Target" Grid.Row="1" Width="72" Height="72" Cursor="Cross" MouseLeftButtonDown="Target_MouseDown" MouseLeftButtonUp="Target_MouseUp" MouseMove="Target_MouseMove"
+                  ToolTip="Drag me onto a window, desktop icon or taskbar button">
+                <Ellipse Fill="{DynamicResource AccentFillColorDefaultBrush}" Opacity="0.18" />
+                <Ellipse Margin="10" Stroke="{DynamicResource AccentFillColorDefaultBrush}" StrokeThickness="3" />
+                <Ellipse Margin="24" Fill="{DynamicResource AccentFillColorDefaultBrush}" />
+                <Rectangle Width="2" Height="72" Fill="{DynamicResource AccentFillColorDefaultBrush}" Opacity="0.7" />
+                <Rectangle Width="72" Height="2" Fill="{DynamicResource AccentFillColorDefaultBrush}" Opacity="0.7" />
+            </Grid>
+            <TextBlock x:Name="HoverLabel" Grid.Row="2" Margin="6,2,6,8" HorizontalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Drag to aim"
+                       TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </Grid>
+    </Border>
+</Window>

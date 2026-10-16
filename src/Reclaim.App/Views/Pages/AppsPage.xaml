@@ -1,0 +1,289 @@
+<Page
+    x:Class="Reclaim.App.Views.Pages.AppsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:Reclaim.App.ViewModels"
+    Title="Apps"
+    d:DataContext="{d:DesignInstance Type=vm:AppsViewModel}"
+    mc:Ignorable="d">
+    <Page.InputBindings>
+        <KeyBinding Key="Delete" Command="{Binding UninstallCommand}" />
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}" />
+    </Page.InputBindings>
+    <Grid Margin="0,0,0,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Header  -->
+        <Grid Margin="0,8,0,18">
+            <StackPanel>
+                <TextBlock Style="{StaticResource PageTitle}" Text="Apps" />
+                <TextBlock Style="{StaticResource PageSubtitle}" Text="{Binding Summary}" />
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                <ui:ProgressRing Width="20" Height="20" Margin="0,0,12,0" IsIndeterminate="True" ToolTip="Measuring sizes and checking signatures…"
+                                 Visibility="{Binding Catalog.IsEnriching, Converter={StaticResource BoolToVis}}" />
+                <ui:DropDownButton Margin="0,0,8,0" Content="Export" Icon="{ui:SymbolIcon ArrowExportUp24}">
+                    <ui:DropDownButton.Flyout>
+                        <ContextMenu>
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="html" Header="List as web page (HTML)" />
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="csv" Header="List as spreadsheet (CSV)" />
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="json" Header="List as JSON" />
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="text" Header="List as text" />
+                            <Separator />
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="ps1" Header="Uninstall script for ticked apps (PowerShell)" />
+                            <MenuItem Command="{Binding ExportCommand}" CommandParameter="bat" Header="Uninstall script for ticked apps (batch)" />
+                        </ContextMenu>
+                    </ui:DropDownButton.Flyout>
+                </ui:DropDownButton>
+                <ui:Button Command="{Binding RefreshCommand}" Icon="{ui:SymbolIcon ArrowClockwise24}" ToolTip="Refresh (F5)" />
+            </StackPanel>
+        </Grid>
+
+        <!--  Search + sort  -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="560" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:TextBox x:Name="SearchBox" ClearButtonEnabled="True" Icon="{ui:SymbolIcon Search24}" PlaceholderText="Search by name or publisher  (Ctrl+F)"
+                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+            <ToggleButton Grid.Column="1" Width="40" Margin="8,0,0,0" Content=".*" FontFamily="Cascadia Mono, Consolas" IsChecked="{Binding UseRegex}" ToolTip="Use a regular expression" />
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="Sort by" />
+                <ComboBox MinWidth="140" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SortBy}" />
+            </StackPanel>
+        </Grid>
+
+        <!--  Filter chips  -->
+        <WrapPanel Grid.Row="2" Margin="0,0,0,8">
+            <RadioButton Content="All" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=All}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Desktop programs" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Programs}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Windows apps" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=WindowsApps}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Browser extensions" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Extensions}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Leftovers &amp; broken" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Leftovers}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Updates available" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=UpdateAvailable}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Recently installed" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Recent}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Large" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Large}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Bundleware" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Bundleware}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Unsigned" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Unsigned}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Traced" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=Traced}" Style="{StaticResource Chip}" />
+            <RadioButton Content="Windows updates" GroupName="f" IsChecked="{Binding Filter, Converter={StaticResource Equals}, ConverterParameter=WindowsUpdates}" Style="{StaticResource Chip}" />
+        </WrapPanel>
+
+        <!--  List + detail  -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource Card}" Padding="6">
+                <Grid>
+                    <ListView
+                        x:Name="AppList"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ItemContainerStyle="{StaticResource RowItem}"
+                        ItemsSource="{Binding View}"
+                        MouseDoubleClick="AppList_MouseDoubleClick"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        SelectedItem="{Binding Selected}"
+                        SelectionMode="Single"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.ScrollUnit="Pixel"
+                        VirtualizingPanel.VirtualizationMode="Recycling">
+                        <ListView.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:AppItemViewModel}">
+                                <Grid Height="58" Margin="4,0,8,0" Loaded="Row_Loaded" Background="Transparent">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="110" />
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="100" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox MinWidth="0" Margin="4,0,10,0" VerticalAlignment="Center" IsChecked="{Binding IsChecked}" ToolTip="Add to batch" />
+                                    <Grid Grid.Column="1" Width="36" Height="36" Margin="0,0,14,0">
+                                        <Border CornerRadius="8" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Visibility="{Binding Icon, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}">
+                                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Initial}" />
+                                        </Border>
+                                        <Image RenderOptions.BitmapScalingMode="HighQuality" Source="{Binding Icon}" />
+                                    </Grid>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock MaxWidth="420" FontSize="14" FontWeight="SemiBold" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                            <ItemsControl Margin="10,0,0,0" ItemsSource="{Binding Badges}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Style="{StaticResource Pill}" Background="{Binding Tone, Converter={StaticResource ToneBrush}, ConverterParameter=bg}" ToolTip="{Binding ToolTip}">
+                                                            <TextBlock Style="{StaticResource PillText}" Foreground="{Binding Tone, Converter={StaticResource ToneBrush}}" Text="{Binding Text}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                        <TextBlock Margin="0,2,0,0" Style="{StaticResource Secondary}" Text="{Binding Publisher}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="3" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding Version}" />
+                                    <TextBlock Grid.Column="4" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding SizeText}" TextAlignment="Right" />
+                                    <TextBlock Grid.Column="5" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding DateText}" TextAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!--  Empty / loading states  -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Catalog.IsLoading, Converter={StaticResource BoolToVis}}">
+                        <ui:ProgressRing IsIndeterminate="True" />
+                        <TextBlock Margin="0,16,0,0" Style="{StaticResource Secondary}" FontSize="14" Text="Finding everything installed on this PC…" />
+                    </StackPanel>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding VisibleCount, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}">
+                        <ui:SymbolIcon HorizontalAlignment="Center" FontSize="40" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Symbol="SearchInfo24" />
+                        <TextBlock Margin="0,12,0,0" Style="{StaticResource Secondary}" FontSize="14" Text="Nothing matches. Try another filter or search." />
+                    </StackPanel>
+
+                    <!--  Floating batch bar  -->
+                    <Border Margin="0,0,0,16" Padding="18,10,10,10" HorizontalAlignment="Center" VerticalAlignment="Bottom" CornerRadius="14"
+                            Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}" BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}" BorderThickness="1"
+                            Visibility="{Binding CheckedCount, Converter={StaticResource HasValueToVis}}">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="24" Opacity="0.3" ShadowDepth="4" />
+                        </Border.Effect>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold">
+                                <Run Text="{Binding CheckedCount, Mode=OneWay}" /><Run Text=" selected" />
+                            </TextBlock>
+                            <TextBlock Margin="8,0,20,0" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding CheckedSize}" />
+                            <ui:ToggleSwitch Margin="0,0,16,0" Content="Quiet" IsChecked="{Binding Quiet}" ToolTip="Skip uninstaller windows where possible" />
+                            <ui:Button Margin="0,0,6,0" Appearance="Transparent" Command="{Binding ClearChecksCommand}" Content="Clear" />
+                            <ui:Button Appearance="Danger" Command="{Binding UninstallCheckedCommand}" Icon="{ui:SymbolIcon Delete24}">
+                                <TextBlock><Run Text="Uninstall " /><Run Text="{Binding CheckedCount, Mode=OneWay}" /></TextBlock>
+                            </ui:Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!--  Detail pane  -->
+            <Border Grid.Column="1" Width="360" Margin="16,0,0,0" Style="{StaticResource Card}" Padding="0" DataContext="{Binding Selected}"
+                    Visibility="{Binding Converter={StaticResource HasValueToVis}}">
+                <ScrollViewer Padding="20" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Grid Width="64" Height="64" HorizontalAlignment="Left">
+                            <Border CornerRadius="14" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Visibility="{Binding Icon, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}">
+                                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="26" FontWeight="SemiBold" Text="{Binding Initial}" />
+                            </Border>
+                            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="{Binding Icon}" />
+                        </Grid>
+                        <TextBlock Margin="0,14,0,2" FontSize="20" FontWeight="SemiBold" Text="{Binding Name}" TextWrapping="Wrap" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="{Binding Publisher}" TextWrapping="Wrap" />
+
+                        <WrapPanel Margin="0,16,0,0">
+                            <ui:Button Margin="0,0,8,8" Appearance="Danger" Command="{Binding DataContext.UninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}" Content="Uninstall" Icon="{ui:SymbolIcon Delete24}" />
+                            <ui:Button Margin="0,0,8,8" Command="{Binding DataContext.ForceRemoveCommand, RelativeSource={RelativeSource AncestorType=Page}}" Content="Force" Icon="{ui:SymbolIcon DeleteDismiss24}" ToolTip="Skip the program's uninstaller and remove everything Reclaim finds" />
+                            <ui:DropDownButton Margin="0,0,8,8" Icon="{ui:SymbolIcon MoreHorizontal24}" ToolTip="More">
+                                <ui:DropDownButton.Flyout>
+                                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                        <MenuItem Command="{Binding DataContext.OpenFolderCommand, Source={x:Reference AppList}}" Header="Open install folder" />
+                                        <MenuItem Command="{Binding DataContext.OpenRegistryCommand, Source={x:Reference AppList}}" Header="Open registry key" />
+                                        <MenuItem Command="{Binding DataContext.SearchOnlineCommand, Source={x:Reference AppList}}" Header="Search online" />
+                                        <MenuItem Command="{Binding DataContext.ShowPropertiesCommand, Source={x:Reference AppList}}" Header="File properties" />
+                                        <Separator />
+                                        <MenuItem Command="{Binding DataContext.ModifyRepairCommand, Source={x:Reference AppList}}" Header="Change / repair" />
+                                        <MenuItem Command="{Binding DataContext.ForcedMsiCommand, Source={x:Reference AppList}}" Header="Forced MSI uninstall" />
+                                        <MenuItem Command="{Binding DataContext.RelocateCommand, Source={x:Reference AppList}}" Header="Move to another drive…" />
+                                    </ContextMenu>
+                                </ui:DropDownButton.Flyout>
+                            </ui:DropDownButton>
+                        </WrapPanel>
+
+                        <ui:InfoBar Margin="0,8,0,0" IsClosable="False" IsOpen="True" Severity="Success" Title="Update available"
+                                    Message="{Binding Model.AvailableVersion, StringFormat='Version {0} is available through winget.'}"
+                                    Visibility="{Binding Model.WingetId, Converter={StaticResource HasValueToVis}}" />
+                        <ui:Button Margin="0,6,0,0" Command="{Binding DataContext.UpdateAppCommand, Source={x:Reference AppList}}" Content="Update now" Icon="{ui:SymbolIcon ArrowSync24}"
+                                   Visibility="{Binding Model.WingetId, Converter={StaticResource HasValueToVis}}" />
+                        <ui:InfoBar Margin="0,8,0,0" IsClosable="False" IsOpen="True" Severity="Warning" Title="Installed alongside another program"
+                                    Message="{Binding Model.Extra[InstalledAlongside], StringFormat='Registered within minutes of {0}. It may have been bundled.'}"
+                                    Visibility="{Binding Model.Extra[InstalledAlongside], Converter={StaticResource HasValueToVis}, FallbackValue=Collapsed}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource Secondary}" Text="{Binding Model.Comments}" TextWrapping="Wrap" Visibility="{Binding Model.Comments, Converter={StaticResource HasValueToVis}}" />
+
+                        <TextBlock Style="{StaticResource SectionTitle}" Margin="0,20,0,8" Text="Details" />
+                        <Grid>
+                            <Grid.Resources>
+                                <Style x:Key="K" TargetType="TextBlock" BasedOn="{StaticResource Secondary}">
+                                    <Setter Property="Margin" Value="0,0,12,10" />
+                                </Style>
+                                <Style x:Key="V" TargetType="TextBlock">
+                                    <Setter Property="Margin" Value="0,0,0,10" />
+                                    <Setter Property="FontSize" Value="12" />
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </Grid.Resources>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Style="{StaticResource K}" Text="Version" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource V}" Text="{Binding Version, TargetNullValue='—'}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource K}" Text="Installed" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource V}" Text="{Binding DateText}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource K}" Text="Size" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource V}" Text="{Binding SizeText}" />
+                            <TextBlock Grid.Row="3" Style="{StaticResource K}" Text="Type" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource V}" Text="{Binding SourceText}" />
+                            <TextBlock Grid.Row="4" Style="{StaticResource K}" Text="Uninstaller" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource V}" Text="{Binding UninstallerText}" />
+                            <TextBlock Grid.Row="5" Style="{StaticResource K}" Text="Signature" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource V}" Text="{Binding SignatureText}" />
+                            <TextBlock Grid.Row="6" Style="{StaticResource K}" Text="Architecture" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Style="{StaticResource V}" Text="{Binding BitnessText}" />
+                            <TextBlock Grid.Row="7" Style="{StaticResource K}" Text="Location" />
+                            <TextBlock Grid.Row="7" Grid.Column="1" Style="{StaticResource V}" Text="{Binding Model.InstallLocation, TargetNullValue='Unknown'}" />
+                            <TextBlock Grid.Row="8" Style="{StaticResource K}" Text="Quiet removal" />
+                            <TextBlock Grid.Row="8" Grid.Column="1">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource V}">
+                                        <Setter Property="Text" Value="Not supported" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SupportsQuiet}" Value="True">
+                                                <Setter Property="Text" Value="Supported" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+
+                        <StackPanel Margin="0,8,0,0">
+                            <ui:HyperlinkButton Padding="0,4" Command="{Binding DataContext.OpenLinkCommand, Source={x:Reference AppList}}" CommandParameter="{Binding Model.AboutLink}" Content="Publisher website"
+                                                Visibility="{Binding Model.AboutLink, Converter={StaticResource HasValueToVis}}" />
+                            <ui:HyperlinkButton Padding="0,4" Command="{Binding DataContext.OpenLinkCommand, Source={x:Reference AppList}}" CommandParameter="{Binding Model.HelpLink}" Content="Help and support"
+                                                Visibility="{Binding Model.HelpLink, Converter={StaticResource HasValueToVis}}" />
+                            <ui:HyperlinkButton Padding="0,4" Command="{Binding DataContext.OpenLinkCommand, Source={x:Reference AppList}}" CommandParameter="{Binding Model.UpdateLink}" Content="Update information"
+                                                Visibility="{Binding Model.UpdateLink, Converter={StaticResource HasValueToVis}}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>
