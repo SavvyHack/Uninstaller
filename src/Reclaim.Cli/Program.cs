@@ -16,16 +16,16 @@ internal static class Program
     private const string Usage = """
         Reclaim command line
 
-          reclaim list [--search TEXT] [--source win32|store|extension|orphan|...] [--json]
-          reclaim info NAME
-          reclaim uninstall NAME... [--quiet] [--scan safe|moderate|advanced] [--clean certain|likely|none]
+          reclaim-cli list [--search TEXT] [--source win32|store|extension|orphan|...] [--json]
+          reclaim-cli info NAME
+          reclaim-cli uninstall NAME... [--quiet] [--scan safe|moderate|advanced] [--clean certain|likely|none]
                                     [--no-restore-point] [--yes]
-          reclaim scan NAME|PATH [--scan safe|moderate|advanced] [--json] [--clean certain|likely|none] [--yes]
-          reclaim export html|csv|json|text FILE
-          reclaim script ps1|bat FILE NAME...
-          reclaim trace INSTALLER [-- ARGS]
-          reclaim backups
-          reclaim restore BACKUP_FOLDER
+          reclaim-cli scan NAME|PATH [--scan safe|moderate|advanced] [--json] [--clean certain|likely|none] [--yes]
+          reclaim-cli export html|csv|json|text FILE
+          reclaim-cli script ps1|bat FILE NAME...
+          reclaim-cli trace INSTALLER [-- ARGS]
+          reclaim-cli backups
+          reclaim-cli restore BACKUP_FOLDER
 
         NAME matches a program's exact display name, or a unique part of it.
         Exit codes: 0 success, 1 failure, 2 usage error, 3 not found or ambiguous.
@@ -153,7 +153,7 @@ internal static class Program
     private static async Task<int> InfoAsync(string[] args)
     {
         var names = Positional(args);
-        if (names.Count != 1) return Fail("Usage: reclaim info NAME", 2);
+        if (names.Count != 1) return Fail("Usage: reclaim-cli info NAME", 2);
         var apps = await LoadAsync();
         var app = Resolve(apps, names[0], out var err);
         if (app is null) return Fail(err!, 3);
@@ -180,7 +180,7 @@ internal static class Program
     private static async Task<int> UninstallAsync(string[] args)
     {
         var names = Positional(args);
-        if (names.Count == 0) return Fail("Usage: reclaim uninstall NAME... [options]", 2);
+        if (names.Count == 0) return Fail("Usage: reclaim-cli uninstall NAME... [options]", 2);
         if (!IsElevated) Console.Error.WriteLine("Note: not running as administrator. Machine-wide programs may fail to uninstall.");
         var apps = await LoadAsync();
         var targets = new List<InstalledApp>();
@@ -231,7 +231,7 @@ internal static class Program
     private static async Task<int> ScanAsync(string[] args)
     {
         var names = Positional(args);
-        if (names.Count != 1) return Fail("Usage: reclaim scan NAME|PATH [--scan MODE] [--json] [--clean certain|likely] [--yes]", 2);
+        if (names.Count != 1) return Fail("Usage: reclaim-cli scan NAME|PATH [--scan MODE] [--json] [--clean certain|likely] [--yes]", 2);
         var apps = await LoadAsync();
         var target = File.Exists(names[0]) || Directory.Exists(names[0])
             ? ForcedUninstall.Create(names[0], apps)
@@ -274,7 +274,7 @@ internal static class Program
     private static async Task<int> ExportAsync(string[] args)
     {
         var p = Positional(args);
-        if (p.Count != 2 || !Enum.TryParse<ExportFormat>(p[0], true, out var fmt)) return Fail("Usage: reclaim export html|csv|json|text FILE", 2);
+        if (p.Count != 2 || !Enum.TryParse<ExportFormat>(p[0], true, out var fmt)) return Fail("Usage: reclaim-cli export html|csv|json|text FILE", 2);
         var apps = await LoadAsync();
         await File.WriteAllTextAsync(p[1], ExportService.ExportApps(apps.Where(a => a.Source != AppSource.Orphan), fmt));
         Console.WriteLine($"Wrote {p[1]}");
@@ -284,7 +284,7 @@ internal static class Program
     private static async Task<int> ScriptAsync(string[] args)
     {
         var p = Positional(args);
-        if (p.Count < 3) return Fail("Usage: reclaim script ps1|bat FILE NAME...", 2);
+        if (p.Count < 3) return Fail("Usage: reclaim-cli script ps1|bat FILE NAME...", 2);
         var apps = await LoadAsync();
         var targets = new List<InstalledApp>();
         foreach (var n in p.Skip(2))
@@ -302,7 +302,7 @@ internal static class Program
     private static async Task<int> TraceAsync(string[] args)
     {
         var p = Positional(args);
-        if (p.Count < 1) return Fail("Usage: reclaim trace INSTALLER [-- ARGS]", 2);
+        if (p.Count < 1) return Fail("Usage: reclaim-cli trace INSTALLER [-- ARGS]", 2);
         var dashes = Array.IndexOf(args, "--");
         var installerArgs = dashes >= 0 ? string.Join(" ", args.Skip(dashes + 1)) : null;
         using var tracer = new InstallTracer();
@@ -333,7 +333,7 @@ internal static class Program
     private static int Restore(string[] args)
     {
         var p = Positional(args);
-        if (p.Count != 1) return Fail("Usage: reclaim restore BACKUP_FOLDER", 2);
+        if (p.Count != 1) return Fail("Usage: reclaim-cli restore BACKUP_FOLDER", 2);
         var session = BackupSession.Open(p[0]) ?? throw new DirectoryNotFoundException("Not a Reclaim backup folder.");
         var (ok, failed) = session.Restore(new Progress<string>(Console.WriteLine));
         Console.WriteLine($"Restored {ok}, failed {failed}.");

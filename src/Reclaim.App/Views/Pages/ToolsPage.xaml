@@ -45,6 +45,9 @@
                             <ui:Button Grid.Column="3" Margin="16,0,0,0" VerticalAlignment="Bottom" Appearance="Primary" Command="{Binding MoveCommand}" Content="Move" Icon="{ui:SymbolIcon ArrowRight24}"
                                        IsEnabled="{Binding Relocating, Converter={StaticResource InverseBool}}" />
                         </Grid>
+                        <ui:InfoBar Margin="0,14,0,0" IsClosable="False" IsOpen="True" Severity="Informational" Title="Only one drive found"
+                                    Message="Connect another internal or external drive to move programs off your system drive."
+                                    Visibility="{Binding SingleDrive, Converter={StaticResource BoolToVis}}" />
                         <StackPanel Margin="0,14,0,0" Orientation="Horizontal" Visibility="{Binding RelocateStatus, Converter={StaticResource HasValueToVis}}">
                             <ui:ProgressRing Width="16" Height="16" Margin="0,0,8,0" IsIndeterminate="True" Visibility="{Binding Relocating, Converter={StaticResource BoolToVis}}" />
                             <TextBlock Style="{StaticResource Secondary}" Text="{Binding RelocateStatus}" />

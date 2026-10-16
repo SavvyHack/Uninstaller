@@ -72,7 +72,7 @@ public sealed class UiService(ISnackbarService snackbar, IContentDialogService d
         if (window is not null)
         {
             if (pref == ThemePreference.System) SystemThemeWatcher.Watch(window, WindowBackdropType.Mica, true);
-            else SystemThemeWatcher.UnWatch(window);
+            else if (window.IsLoaded) SystemThemeWatcher.UnWatch(window); // nothing to unwatch before the first load
         }
     }
 }

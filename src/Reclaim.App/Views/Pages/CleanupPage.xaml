@@ -84,6 +84,10 @@
                             <ui:Button Margin="8,0,0,0" Appearance="Danger" Command="{Binding DeleteJunkCommand}" Content="Delete selected" Icon="{ui:SymbolIcon Delete24}" />
                         </StackPanel>
                     </Grid>
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding JunkFiles.Count, Converter={StaticResource HasValueToVis}, ConverterParameter=invert}">
+                        <ui:SymbolIcon HorizontalAlignment="Center" FontSize="44" Foreground="{DynamicResource TextFillColorTertiaryBrush}" Symbol="Broom24" />
+                        <TextBlock Margin="0,12,0,0" HorizontalAlignment="Center" Style="{StaticResource Secondary}" FontSize="13" Text="Leftover .tmp, .bak, dump and other junk files will be listed here." />
+                    </StackPanel>
                     <ListView Grid.Row="1" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource RowItem}" ItemsSource="{Binding JunkFiles}" VirtualizingPanel.IsVirtualizing="True">
                         <ListView.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:JunkFileViewModel}">

@@ -42,6 +42,8 @@ public sealed partial class ToolsViewModel : ObservableObject
 
     public IReadOnlyList<WindowsTool> WindowsTools => WindowsToolsCatalog.All;
 
+    public bool SingleDrive => TargetDrives.Count < 2;
+
     public ToolsViewModel(CatalogService catalog, UiService ui)
     {
         _catalog = catalog;

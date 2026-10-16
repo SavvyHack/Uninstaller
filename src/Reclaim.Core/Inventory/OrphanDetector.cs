@@ -47,6 +47,9 @@ public static class OrphanDetector
             names.Add(PathUtil.Squash(a.Name));
             if (a.Publisher is not null) names.Add(PathUtil.Squash(a.Publisher));
         }
+        // Something still running from or registered in a folder means it is in use, even without an Uninstall entry
+        // (MSIX apps that also install to Program Files, anti-cheat services, machine-wide installers...).
+        claimed.AddRange(ActiveReferences());
 
         var roots = new[]
         {
@@ -67,6 +70,7 @@ public static class OrphanDetector
                 var sq = PathUtil.Squash(leaf);
                 if (sq.Length > 2 && names.Any(n => n.Length > 2 && (n.StartsWith(sq) || sq.StartsWith(n)))) continue;
                 if (!ContainsExecutables(dir)) continue;
+                if (IsMicrosoftSigned(dir)) continue;
                 result.Add(new InstalledApp
                 {
                     Id = "orphan:" + dir,
@@ -81,6 +85,50 @@ public static class OrphanDetector
             }
         }
         return result;
+    }
+
+    /// <summary>Folders referenced by services, App Paths, Run entries or scheduled tasks.</summary>
+    private static IEnumerable<string> ActiveReferences()
+    {
+        var paths = new List<string?>();
+        try { paths.AddRange(SystemTools.Services.List().Select(s => PathUtil.ExecutableFromCommand(s.ImagePath))); } catch { }
+        try { paths.AddRange(SystemTools.ScheduledTasks.List().Select(t => t.Command)); } catch { }
+        foreach (var keyPath in new[]
+                 {
+                     @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                     @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run",
+                     @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
+                 })
+        {
+            using var k = RegistryUtil.Open(keyPath);
+            if (k is null) continue;
+            foreach (var v in k.GetValueNames()) paths.Add(PathUtil.ExecutableFromCommand(RegistryUtil.GetString(k, v)));
+        }
+        foreach (var appPaths in new[] { @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths", @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\App Paths" })
+        {
+            using var root = RegistryUtil.Open(appPaths);
+            if (root is null) continue;
+            foreach (var name in root.GetSubKeyNames())
+            {
+                using var k = root.OpenSubKey(name);
+                if (k is not null) paths.Add(PathUtil.Clean(RegistryUtil.GetString(k, "")));
+            }
+        }
+        foreach (var p in paths)
+            if (!string.IsNullOrEmpty(p) && Path.GetDirectoryName(p) is { Length: > 3 } dir) yield return dir;
+    }
+
+    /// <summary>Folders whose programs are signed by Microsoft belong to Windows components or Microsoft apps.</summary>
+    private static bool IsMicrosoftSigned(string dir)
+    {
+        try
+        {
+            var exe = Directory.EnumerateFiles(dir, "*.exe", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, MaxRecursionDepth = 2 })
+                .OrderByDescending(f => new FileInfo(f).Length).FirstOrDefault();
+            var sig = exe is null ? null : SignatureVerifier.Verify(exe);
+            return sig?.Signer?.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) == true;
+        }
+        catch { return false; }
     }
 
     private static IEnumerable<string> SafeDirs(string root)

@@ -77,7 +77,7 @@ public sealed partial class LeftoverNodeViewModel : ObservableObject
     public IEnumerable<LeftoverItem> Items => Item is not null ? [Item] : Children.SelectMany(c => c.Items);
 
     public string Detail => Item is null
-        ? $"{Items.Count()} items{(Items.Sum(i => i.SizeBytes) is > 0 and var s ? " · " + Format.Bytes(s) : "")}"
+        ? $"{Items.Count()} item{(Items.Count() == 1 ? "" : "s")}{(Items.Sum(i => i.SizeBytes) is > 0 and var s ? " · " + Format.Bytes(s) : "")}"
         : Item.SizeText;
 
     public string KindGlyph => Item?.Kind switch

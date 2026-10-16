@@ -52,7 +52,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Border Width="36" Height="36" Margin="0,0,14,0" CornerRadius="8" Background="{Binding Source=Caution, Converter={StaticResource ToneBrush}, ConverterParameter=bg}">
-                                        <ui:SymbolIcon FontSize="18" Foreground="{DynamicResource SystemFillColorCautionBrush}" Symbol="FolderSearch24" />
+                                        <ui:SymbolIcon FontSize="18" Foreground="{DynamicResource SystemFillColorCautionBrush}" Symbol="FolderOpen24" />
                                     </Border>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />

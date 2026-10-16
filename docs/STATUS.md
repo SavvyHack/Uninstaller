@@ -1,26 +1,26 @@
 # Build status
 
-## Done (committed on `feature/reclaim`)
-- Solution scaffold: `Reclaim.slnx` with Core, App (WPF + WPF-UI 4.3), Cli and Tests projects. All target .NET 10 and win-x64.
-- **Reclaim.Core** builds with 0 errors. It covers:
-  - inventory (Win32/registry, Store, browser extensions, Scoop, Chocolatey, Steam, Windows updates, orphans, bundleware, signatures)
-  - uninstall engine (type detection, silent switches, job-object runner, batch queue with reboot resume, forced and Store uninstall, script export)
-  - leftover scanner (Safe/Moderate/Advanced, confidence scoring, protection guard, COM, shell and driver scans, deep reference sweep)
-  - backup sessions, restore points and full registry backup
-  - install tracer (ETW + registry snapshot), trace store and external-uninstall watcher
-  - cleaners (junk, Windows, browsers, Office), shredder and free-space wipe
-  - autorun manager, Software Relocator, winget updater, Windows tools, export, Explorer menu entry, Hunter service
-- `docs/research/feature-reference.md` maps each feature to the tool it comes from (clean-room, built from public docs only).
+## Done
+- **Core engine** (`src/Reclaim.Core`): every planned feature (see README).
+- **App UI** (`src/Reclaim.App`): every page plus the uninstall sheet, Hunter window, drag-and-drop, light and dark
+  themes, and the external-uninstall notification.
+- **CLI** (`src/Reclaim.Cli`, `reclaim-cli.exe`).
+- **Tests**: 80 xUnit tests passing (scoring, protection, installer detection and silent switches, script export,
+  winget parsing, registry snapshot diff, relocation with a junction and back, cleanup + restore, shredder).
+- **End-to-end** with `tests/fixtures`, run both through the CLI and through the real UI (driven by UI Automation):
+  - every planted leftover was found and removed
+  - the decoy from the same publisher was untouched
+  - Undo/restore brought everything back
+- **Portable single-file publish** verified to start.
 
-## Remaining
-1. **App UI** (`src/Reclaim.App`): app.manifest (requireAdministrator), icon, App.xaml with WPF-UI dictionaries and DI host, then:
-   - FluentWindow with Mica and a NavigationView: Home, Apps, Hunter, Force uninstall, Install monitor, Cleanup, Startup, Tools, Backups, Settings
-   - the uninstall side sheet, a 5-step stepper with the leftover TreeView grouped by confidence
-   - the Hunter floating target window
-   - Apps page: virtualized list, filter chips, detail pane, floating batch bar
-2. **CLI** (`src/Reclaim.Cli`): `list`, `uninstall`, `export`, `trace`.
-3. **Tests**: ConfidenceScorer, ProtectionGuard, SilentArgs/type detection, RegistrySnapshot diff, ScriptExporter, and Relocator in a temp dir.
-4. **Fixture**: `tests/fixtures/Install-FakeApp.ps1` for an end-to-end leftover test.
-5. **Publish**: single-file portable exe (`IncludeNativeLibrariesForSelfExtract` for TraceEvent).
+## Verified only without administrator rights
+- The UI was exercised with the preview (asInvoker) build. Per-user programs, HKCU and the user's files were tested
+  for real.
+- Not yet exercised on this machine: machine-wide (HKLM / Program Files) uninstalls, MSI uninstalls, restore-point
+  creation, kernel ETW install tracing, services and firewall-rule removal, and the Relocator across two physical
+  drives. All of these need an elevated run.
 
-None of Core has been run against the real system yet. It has only been compiled.
+## Known limitations
+- Signature check uses embedded Authenticode only, so catalog-signed Windows files can show as "Unsigned".
+- Store app removal for all users goes through PowerShell's Appx module.
+- Shredding and free-space wiping can't guarantee erasure on SSDs (the UI warns about this).

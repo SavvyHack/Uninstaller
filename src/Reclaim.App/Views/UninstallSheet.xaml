@@ -7,6 +7,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:Reclaim.App.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:UninstallWizardViewModel}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -32,7 +33,7 @@
                 <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
                 <TextBlock Style="{StaticResource Secondary}" FontSize="13" Text="{Binding Subtitle}" />
             </StackPanel>
-            <ui:Button Grid.Column="2" VerticalAlignment="Top" Appearance="Transparent" Command="{Binding CancelCommand}" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="Close" />
+            <ui:Button Grid.Column="2" VerticalAlignment="Top" Appearance="Transparent" AutomationProperties.Name="Close" Command="{Binding CancelCommand}" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="Close" />
         </Grid>
 
         <!--  Stepper  -->
@@ -312,7 +313,7 @@
                     <TextBlock VerticalAlignment="Center" Style="{StaticResource Tertiary}" Text="Everything removed is backed up and can be undone." />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <ui:Button Margin="0,0,8,0" Command="{Binding SkipCleanupCommand}" Content="Keep all" />
-                        <ui:Button MinWidth="170" Appearance="Danger" Command="{Binding RemoveSelectedCommand}" Icon="{ui:SymbolIcon Delete24}">
+                        <ui:Button MinWidth="170" Appearance="Danger" AutomationProperties.Name="Remove selected leftovers" Command="{Binding RemoveSelectedCommand}" Icon="{ui:SymbolIcon Delete24}">
                             <TextBlock><Run Text="Remove " /><Run Text="{Binding SelectedCount, Mode=OneWay}" /><Run Text=" items" /></TextBlock>
                         </ui:Button>
                     </StackPanel>

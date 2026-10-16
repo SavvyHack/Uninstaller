@@ -172,7 +172,7 @@
                             <TextBlock Margin="8,0,20,0" VerticalAlignment="Center" Style="{StaticResource Secondary}" Text="{Binding CheckedSize}" />
                             <ui:ToggleSwitch Margin="0,0,16,0" Content="Quiet" IsChecked="{Binding Quiet}" ToolTip="Skip uninstaller windows where possible" />
                             <ui:Button Margin="0,0,6,0" Appearance="Transparent" Command="{Binding ClearChecksCommand}" Content="Clear" />
-                            <ui:Button Appearance="Danger" Command="{Binding UninstallCheckedCommand}" Icon="{ui:SymbolIcon Delete24}">
+                            <ui:Button Appearance="Danger" AutomationProperties.Name="Uninstall selected programs" Command="{Binding UninstallCheckedCommand}" Icon="{ui:SymbolIcon Delete24}">
                                 <TextBlock><Run Text="Uninstall " /><Run Text="{Binding CheckedCount, Mode=OneWay}" /></TextBlock>
                             </ui:Button>
                         </StackPanel>
